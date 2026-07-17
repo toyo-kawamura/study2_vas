@@ -296,15 +296,15 @@ sliderMap.forEach(({ slider }) => {
 const TIMING_OPTIONS = [
   { value: "before_sleep",   label: "就寝直前",       conditionalOn2: false },
   { value: "after_wake",     label: "起床直後",       conditionalOn2: false },
-  { value: "wake_plus_1h",   label: "起床1時間後",    conditionalOn2: true  },
-  { value: "wake_plus_2h",   label: "起床2時間後",    conditionalOn2: true  },
-  { value: "before_meal",    label: "朝食直前",       conditionalOn2: false },
-  { value: "meal_plus_30",   label: "朝食後30分",     conditionalOn2: false },
-  { value: "meal_plus_60",   label: "朝食後60分",     conditionalOn2: false },
-  { value: "meal_plus_90",   label: "朝食後90分",     conditionalOn2: false },
-  { value: "meal_plus_120",  label: "朝食後120分",    conditionalOn2: false },
-  { value: "meal_plus_150",  label: "朝食後150分",    conditionalOn2: false },
-  { value: "meal_plus_180",  label: "朝食後180分",    conditionalOn2: false },
+  { value: "wake_1",   label: "起床1時間後",    conditionalOn2: true  },
+  { value: "wake_2",   label: "起床2時間後",    conditionalOn2: true  },
+  { value: "meal_0",    label: "朝食直前",       conditionalOn2: false },
+  { value: "meal_30",   label: "朝食後30分",     conditionalOn2: false },
+  { value: "meal_60",   label: "朝食後60分",     conditionalOn2: false },
+  { value: "meal_90",   label: "朝食後90分",     conditionalOn2: false },
+  { value: "meal_120",  label: "朝食後120分",    conditionalOn2: false },
+  { value: "meal_150",  label: "朝食後150分",    conditionalOn2: false },
+  { value: "meal_180",  label: "朝食後180分",    conditionalOn2: false },
 ];
 
 const timingSelect = document.getElementById("timing-select");
