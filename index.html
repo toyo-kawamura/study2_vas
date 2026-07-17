@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>食欲記録 eVAS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary:   #1a6fa8;
+      --primary-light: #e8f3fb;
+      --accent:    #0e9e6e;
+      --accent-light: #e6f7f2;
+      --bg:        #f0f4f9;
+      --card:      #ffffff;
+      --text:      #1a1f2e;
+      --muted:     #6b7a8d;
+      --border:    #dbe4ee;
+      --warn:      #e67e22;
+      --radius:    16px;
+      --shadow:    0 2px 16px rgba(26,111,168,0.10);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--primary);
+      color: #fff;
+      padding: 28px 20px 24px;
+      text-align: center;
+    }
+    .header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.04em; }
+    .header p  { font-size: 0.78rem; opacity: 0.85; margin-top: 7px; line-height: 1.7; }
+
+    .content { padding: 20px 16px 0; }
+
+    /* ── 共通カード ── */
+    .id-card, .day-card, .timing-card, .vas-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px 18px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+    .id-card     { animation: fadeUp 0.30s ease both; border-left: 4px solid var(--primary); }
+    .day-card    { animation: fadeUp 0.32s ease both; border-left: 4px solid var(--primary); }
+    .timing-card { animation: fadeUp 0.35s ease both; border-left: 4px solid var(--primary); }
+    .vas-card    { animation: fadeUp 0.40s ease both; padding: 22px 18px 20px; }
+
+    .vas-card:nth-child(2) { animation-delay: 0.06s; }
+    .vas-card:nth-child(3) { animation-delay: 0.12s; }
+    .vas-card:nth-child(4) { animation-delay: 0.18s; }
+    .vas-card:nth-child(5) { animation-delay: 0.24s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .card-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: -8px;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── ID input ── */
+    input#subject-id {
+      width: 100%; padding: 14px 16px;
+      font-family: inherit; font-size: 1.1rem; font-weight: 600;
+      color: var(--text); background: var(--primary-light);
+      border: 2px solid var(--border); border-radius: 10px;
+      outline: none; transition: border-color 0.2s; letter-spacing: 0.1em;
+    }
+    input#subject-id:focus, input#subject-id.filled { border-color: var(--primary); background: #fff; }
+
+    /* ── 条件ボタン(①②③) ── */
+    .day-btn-group {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .day-btn {
+      padding: 16px 4px;
+      font-family: inherit; font-size: 1.05rem; font-weight: 700;
+      color: var(--muted); background: var(--bg);
+      border: 2px solid var(--border); border-radius: 10px;
+      cursor: pointer; text-align: center; line-height: 1.45;
+      transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+    }
+    .day-btn:active { transform: scale(0.95); }
+    .day-btn.active {
+      background: var(--primary); border-color: var(--primary);
+      color: #fff; box-shadow: 0 3px 10px rgba(26,111,168,0.3);
+    }
+
+    /* ── エラーメッセージ共通 ── */
+    .err-msg {
+      font-size: 0.75rem; color: #c62828; margin-top: 6px; display: none;
+    }
+
+    /* ── タイミング選択(プルダウン) ── */
+    select#timing-select {
+      width: 100%; padding: 14px 16px;
+      font-family: inherit; font-size: 1rem; font-weight: 600;
+      color: var(--text); background: var(--primary-light);
+      border: 2px solid var(--border); border-radius: 10px;
+      outline: none; transition: border-color 0.2s;
+      -webkit-appearance: menulist; appearance: menulist;
+    }
+    select#timing-select:disabled {
+      color: var(--muted); background: var(--bg); cursor: not-allowed;
+    }
+    select#timing-select:focus, select#timing-select.filled { border-color: var(--primary); background: #fff; }
+
+    /* ── VAS スライダー ── */
+    .vas-card .q-num {
+      font-size: 0.7rem; font-weight: 700; color: var(--primary);
+      letter-spacing: 0.1em; margin-bottom: 5px;
+    }
+    .vas-card .question {
+      font-size: 1rem; font-weight: 700; line-height: 1.55; margin-bottom: 20px;
+    }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 7px; border-radius: 4px;
+      outline: none; cursor: pointer; background: var(--border);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--primary); border: 3px solid #fff;
+      box-shadow: 0 2px 10px rgba(26,111,168,0.38);
+      cursor: pointer; transition: transform 0.12s;
+    }
+    input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.18); }
+    input[type="range"]::-moz-range-thumb {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--primary); border: 3px solid #fff;
+      box-shadow: 0 2px 10px rgba(26,111,168,0.38); cursor: pointer;
+    }
+    .vas-labels { display: flex; justify-content: space-between; margin-top: 10px; }
+    .vas-labels span {
+      font-size: 0.75rem; color: var(--muted); line-height: 1.4; max-width: 100px;
+    }
+    .vas-labels span:first-child { text-align: left; }
+    .vas-labels span:last-child  { text-align: right; }
+
+    /* ── 保存ボタン ── */
+    #save-btn {
+      display: block; width: 100%; padding: 18px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius); font-size: 1.05rem;
+      font-weight: 700; font-family: inherit; cursor: pointer;
+      margin-top: 20px; letter-spacing: 0.06em;
+      box-shadow: 0 4px 14px rgba(14,158,110,0.35);
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    }
+    #save-btn:active   { transform: scale(0.97); box-shadow: none; }
+    #save-btn:disabled { background: #aaa; box-shadow: none; cursor: not-allowed; }
+
+    #status {
+      text-align: center; margin-top: 18px;
+      font-size: 0.92rem; font-weight: 700;
+      min-height: 1.6em; line-height: 1.6; padding: 0 8px;
+    }
+    .st-ok   { color: var(--accent); }
+    .st-err  { color: #c62828; }
+    .st-wait { color: var(--muted); }
+
+    footer {
+      text-align: center; margin-top: 32px;
+      font-size: 0.72rem; color: var(--muted); opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>食欲・空腹感の記録</h1>
+  <p>現在の状態に最も当てはまると思える位置に<br>スライダーを動かしてください。<br>最後に「記録を保存する」を押してください。</p>
+</div>
+
+<div class="content">
+
+  <!-- ① 対象者ID -->
+  <div class="id-card">
+    <div class="card-title">対象者IDを入力してください</div>
+    <input type="number" id="subject-id" inputmode="numeric" pattern="[0-9]*" placeholder="例：1001">
+    <p class="err-msg" id="id-required">※ IDを入力してください</p>
+  </div>
+
+  <!-- ② 条件 -->
+  <div class="day-card">
+    <div class="card-title">条件を選んでください</div>
+    <div class="day-btn-group">
+      <button type="button" class="day-btn" data-day="1">①</button>
+      <button type="button" class="day-btn" data-day="2">②</button>
+      <button type="button" class="day-btn" data-day="3">③</button>
+    </div>
+    <p class="err-msg" id="day-required">※ 条件を選択してください</p>
+  </div>
+
+  <!-- ③ タイミング選択(プルダウン) -->
+  <div class="timing-card">
+    <div class="card-title">測定タイミングを選んでください</div>
+    <p class="card-sub" id="timing-hint">※ 先に条件を選択してください</p>
+    <select id="timing-select" disabled>
+      <option value="" disabled selected>選択してください</option>
+    </select>
+    <p class="err-msg" id="timing-required">※ タイミングを選択してください</p>
+  </div>
+
+  <!-- ④ VAS 質問群 -->
+  <div class="vas-card">
+    <div class="q-num">Q1</div>
+    <div class="question">今、どれくらい空腹ですか？</div>
+    <input type="range" min="0" max="100" step="0.1" value="50" id="hunger-slider">
+    <div class="vas-labels">
+      <span>まったく<br>空腹でない</span>
+      <span>非常に<br>空腹である</span>
+    </div>
+  </div>
+
+  <div class="vas-card">
+    <div class="q-num">Q2</div>
+    <div class="question">今、どれくらい満腹ですか？</div>
+    <input type="range" min="0" max="100" step="0.1" value="50" id="satiety-slider">
+    <div class="vas-labels">
+      <span>まったく<br>満腹でない</span>
+      <span>非常に<br>満腹である</span>
+    </div>
+  </div>
+
+  <div class="vas-card">
+    <div class="q-num">Q3</div>
+    <div class="question">今、どれくらい食事を食べたいですか？</div>
+    <input type="range" min="0" max="100" step="0.1" value="50" id="desire-slider">
+    <div class="vas-labels">
+      <span>まったく<br>食べたくない</span>
+      <span>非常に<br>食べたい</span>
+    </div>
+  </div>
+
+  <div class="vas-card">
+    <div class="q-num">Q4</div>
+    <div class="question">今、どれくらい食事を食べられますか？</div>
+    <input type="range" min="0" max="100" step="0.1" value="50" id="capacity-slider">
+    <div class="vas-labels">
+      <span>まったく<br>食べられない</span>
+      <span>非常に<br>食べられる</span>
+    </div>
+  </div>
+
+  <button id="save-btn">記録を保存する</button>
+  <p id="status"></p>
+  <footer>本フォームは研究目的で使用されます</footer>
+
+</div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzHGbdL4nmWmccM-sFZTuFoHWLy2f9dYxlVO6yXJ1NwFN0UKZzW3_EOJh6tJCtNiBXoxA/exec";
+
+const sliderMap = [
+  { slider: document.getElementById("hunger-slider")   },
+  { slider: document.getElementById("satiety-slider")  },
+  { slider: document.getElementById("desire-slider")   },
+  { slider: document.getElementById("capacity-slider") },
+];
+
+function updateRail(slider) {
+  const v = parseFloat(slider.value);
+  slider.style.background =
+    `linear-gradient(to right, var(--primary) 0%, var(--primary) ${v}%, var(--border) ${v}%, var(--border) 100%)`;
+}
+sliderMap.forEach(({ slider }) => {
+  slider.addEventListener("input", () => updateRail(slider));
+  updateRail(slider);
+});
+
+// ── タイミング選択肢の定義 ──
+// 起床1時間後・起床2時間後は条件②のときのみ表示
+const TIMING_OPTIONS = [
+  { value: "before_sleep",   label: "就寝直前",       conditionalOn2: false },
+  { value: "after_wake",     label: "起床直後",       conditionalOn2: false },
+  { value: "wake_plus_1h",   label: "起床1時間後",    conditionalOn2: true  },
+  { value: "wake_plus_2h",   label: "起床2時間後",    conditionalOn2: true  },
+  { value: "before_meal",    label: "朝食直前",       conditionalOn2: false },
+  { value: "meal_plus_30",   label: "朝食後30分",     conditionalOn2: false },
+  { value: "meal_plus_60",   label: "朝食後60分",     conditionalOn2: false },
+  { value: "meal_plus_90",   label: "朝食後90分",     conditionalOn2: false },
+  { value: "meal_plus_120",  label: "朝食後120分",    conditionalOn2: false },
+  { value: "meal_plus_150",  label: "朝食後150分",    conditionalOn2: false },
+  { value: "meal_plus_180",  label: "朝食後180分",    conditionalOn2: false },
+];
+
+const timingSelect = document.getElementById("timing-select");
+const timingHint   = document.getElementById("timing-hint");
+
+function renderTimingOptions(day) {
+  // day: "1" | "2" | "3" | null
+  timingSelect.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  placeholder.textContent = "選択してください";
+  timingSelect.appendChild(placeholder);
+
+  const options = TIMING_OPTIONS.filter(opt => !opt.conditionalOn2 || day === "2");
+  options.forEach(opt => {
+    const el = document.createElement("option");
+    el.value = opt.value;
+    el.textContent = opt.label;
+    timingSelect.appendChild(el);
+  });
+
+  timingSelect.disabled = day === null;
+  timingSelect.classList.remove("filled");
+  timingHint.style.display = day === null ? "block" : "none";
+}
+renderTimingOptions(null);
+
+timingSelect.addEventListener("change", () => {
+  timingSelect.classList.toggle("filled", timingSelect.value !== "");
+  if (timingSelect.value !== "") document.getElementById("timing-required").style.display = "none";
+});
+
+function resetAll() {
+  sliderMap.forEach(({ slider }) => { slider.value = 50; updateRail(slider); });
+  document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+  selectedDay = null;
+  renderTimingOptions(null);
+  subjectIdEl.value = "";
+  subjectIdEl.classList.remove("filled");
+}
+
+// 条件ボタン(①②③)
+let selectedDay = null;
+document.querySelectorAll(".day-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedDay = btn.dataset.day;
+    document.getElementById("day-required").style.display = "none";
+    document.getElementById("timing-required").style.display = "none";
+    renderTimingOptions(selectedDay);
+  });
+});
+
+// ID入力
+const subjectIdEl = document.getElementById("subject-id");
+subjectIdEl.addEventListener("input", () => {
+  subjectIdEl.value = subjectIdEl.value.replace(/[^0-9]/g, "");
+  subjectIdEl.classList.toggle("filled", subjectIdEl.value !== "");
+  if (subjectIdEl.value !== "") document.getElementById("id-required").style.display = "none";
+});
+
+function getTimestamp() {
+  const d = new Date(), pad = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+
+document.getElementById("save-btn").addEventListener("click", async () => {
+  const statusEl  = document.getElementById("status");
+  const btn       = document.getElementById("save-btn");
+  const subjectId = subjectIdEl.value.trim();
+  const timingVal = timingSelect.value;
+
+  if (!subjectId) {
+    document.getElementById("id-required").style.display = "block";
+    subjectIdEl.focus(); statusEl.textContent = ""; return;
+  }
+  if (selectedDay === null) {
+    document.getElementById("day-required").style.display = "block";
+    statusEl.textContent = ""; return;
+  }
+  if (!timingVal) {
+    document.getElementById("timing-required").style.display = "block";
+    statusEl.textContent = ""; return;
+  }
+  btn.disabled = true;
+  statusEl.textContent = "送信中…";
+  statusEl.className   = "st-wait";
+
+  const payload = {
+    timestamp:  getTimestamp(),
+    subject_id: subjectId,
+    condition:  selectedDay,
+    timing:     timingVal,
+    hunger:     document.getElementById("hunger-slider").value,
+    satiety:    document.getElementById("satiety-slider").value,
+    desire:     document.getElementById("desire-slider").value,
+    capacity:   document.getElementById("capacity-slider").value,
+  };
+
+  try {
+    await fetch(GAS_URL, {
+      method: "POST", mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    resetAll();
+    statusEl.innerHTML = "✅ 記録が完了しました。<br>ありがとうございました。";
+    statusEl.className = "st-ok";
+  } catch (err) {
+    statusEl.textContent = "❌ 通信エラーです。電波状況を確認してください。";
+    statusEl.className   = "st-err";
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
