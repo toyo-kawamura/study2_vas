@@ -112,8 +112,27 @@
       font-size: 0.75rem; color: #c62828; margin-top: 6px; display: none;
     }
 
+    /* ── 基準切替(睡眠基準/食事基準/時刻基準) ── */
+    .basis-btn-group {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    }
+    .basis-btn {
+      padding: 14px 2px;
+      font-family: inherit; font-size: 0.82rem; font-weight: 700;
+      color: var(--muted); background: var(--bg);
+      border: 2px solid var(--border); border-radius: 10px;
+      cursor: pointer; text-align: center; line-height: 1.4;
+      transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+    }
+    .basis-btn:active { transform: scale(0.95); }
+    .basis-btn.active {
+      background: var(--primary); border-color: var(--primary);
+      color: #fff; box-shadow: 0 3px 10px rgba(26,111,168,0.3);
+    }
+    .timing-sub { margin-top: 14px; }
+
     /* ── タイミング選択(プルダウン) ── */
-    select#timing-select {
+    .timing-select-el {
       width: 100%; padding: 14px 16px;
       font-family: inherit; font-size: 1rem; font-weight: 600;
       color: var(--text); background: var(--primary-light);
@@ -121,10 +140,10 @@
       outline: none; transition: border-color 0.2s;
       -webkit-appearance: menulist; appearance: menulist;
     }
-    select#timing-select:disabled {
+    .timing-select-el:disabled {
       color: var(--muted); background: var(--bg); cursor: not-allowed;
     }
-    select#timing-select:focus, select#timing-select.filled { border-color: var(--primary); background: #fff; }
+    .timing-select-el:focus, .timing-select-el.filled { border-color: var(--primary); background: #fff; }
 
     /* ── VAS スライダー ── */
     .vas-card .q-num {
@@ -214,13 +233,37 @@
     <p class="err-msg" id="day-required">※ 条件を選択してください</p>
   </div>
 
-  <!-- ③ タイミング選択(プルダウン) -->
+  <!-- ③ タイミング選択(基準切替 → プルダウン) -->
   <div class="timing-card">
     <div class="card-title">測定タイミングを選んでください</div>
-    <p class="card-sub" id="timing-hint">※ 先に条件を選択してください</p>
-    <select id="timing-select" disabled>
-      <option value="" disabled selected>選択してください</option>
-    </select>
+
+    <div class="basis-btn-group">
+      <button type="button" class="basis-btn" data-basis="sleep">睡眠基準</button>
+      <button type="button" class="basis-btn" data-basis="meal">食事基準</button>
+      <button type="button" class="basis-btn" data-basis="clock">時刻基準</button>
+    </div>
+    <p class="err-msg" id="basis-required">※ 基準を選択してください</p>
+
+    <div class="timing-sub" id="sleep-timing-wrap" style="display:none;">
+      <p class="card-sub" id="timing-hint">※ 先に条件を選択してください</p>
+      <select id="sleep-timing-select" class="timing-select-el" disabled>
+        <option value="" disabled selected>選択してください</option>
+      </select>
+    </div>
+
+    <div class="timing-sub" id="meal-timing-wrap" style="display:none;">
+      <select id="meal-timing-select" class="timing-select-el">
+        <option value="" disabled selected>選択してください</option>
+      </select>
+    </div>
+
+    <div class="timing-sub" id="clock-timing-wrap" style="display:none;">
+      <p class="card-sub">※ 7:00〜14:00・30分おき</p>
+      <select id="clock-select" class="timing-select-el">
+        <option value="" disabled selected>選択してください</option>
+      </select>
+    </div>
+
     <p class="err-msg" id="timing-required">※ タイミングを選択してください</p>
   </div>
 
@@ -272,7 +315,7 @@
 </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbx2W7IBqLjyShxwtJ956uQPbWijuq_gy_saTDhMkmTX0XOyJG3N3Cks9MYzMDF2Qow2/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzHGbdL4nmWmccM-sFZTuFoHWLy2f9dYxlVO6yXJ1NwFN0UKZzW3_EOJh6tJCtNiBXoxA/exec";
 
 const sliderMap = [
   { slider: document.getElementById("hunger-slider")   },
@@ -292,58 +335,163 @@ sliderMap.forEach(({ slider }) => {
 });
 
 // ── タイミング選択肢の定義 ──
-// 起床1時間後・起床2時間後は条件②のときのみ表示
-const TIMING_OPTIONS = [
+// 睡眠基準: 起床1時間後・起床2時間後は条件②のときのみ表示
+const SLEEP_TIMING_OPTIONS = [
   { value: "before_sleep",   label: "就寝直前",       conditionalOn2: false },
   { value: "after_wake",     label: "起床直後",       conditionalOn2: false },
-  { value: "wake_1",   label: "起床1時間後",    conditionalOn2: true  },
-  { value: "wake_2",   label: "起床2時間後",    conditionalOn2: true  },
-  { value: "meal_0",    label: "朝食直前",       conditionalOn2: false },
-  { value: "meal_30",   label: "朝食後30分",     conditionalOn2: false },
-  { value: "meal_60",   label: "朝食後60分",     conditionalOn2: false },
-  { value: "meal_90",   label: "朝食後90分",     conditionalOn2: false },
-  { value: "meal_120",  label: "朝食後120分",    conditionalOn2: false },
-  { value: "meal_150",  label: "朝食後150分",    conditionalOn2: false },
-  { value: "meal_180",  label: "朝食後180分",    conditionalOn2: false },
+  { value: "wake_plus_1h",   label: "起床1時間後",    conditionalOn2: true  },
+  { value: "wake_plus_2h",   label: "起床2時間後",    conditionalOn2: true  },
 ];
 
-const timingSelect = document.getElementById("timing-select");
-const timingHint   = document.getElementById("timing-hint");
+// 食事基準: 朝食を起点とした相対タイミング(条件に依存しない)
+const MEAL_TIMING_OPTIONS = [
+  { value: "before_meal",    label: "朝食直前" },
+  { value: "meal_plus_30",   label: "朝食後30分" },
+  { value: "meal_plus_60",   label: "朝食後60分" },
+  { value: "meal_plus_90",   label: "朝食後90分" },
+  { value: "meal_plus_120",  label: "朝食後120分" },
+  { value: "meal_plus_150",  label: "朝食後150分" },
+  { value: "meal_plus_180",  label: "朝食後180分" },
+];
 
-function renderTimingOptions(day) {
+const sleepSelect = document.getElementById("sleep-timing-select");
+const timingHint  = document.getElementById("timing-hint");
+
+function renderSleepOptions(day) {
   // day: "1" | "2" | "3" | null
-  timingSelect.innerHTML = "";
+  sleepSelect.innerHTML = "";
   const placeholder = document.createElement("option");
   placeholder.value = "";
   placeholder.disabled = true;
   placeholder.selected = true;
   placeholder.textContent = "選択してください";
-  timingSelect.appendChild(placeholder);
+  sleepSelect.appendChild(placeholder);
 
-  const options = TIMING_OPTIONS.filter(opt => !opt.conditionalOn2 || day === "2");
+  const options = SLEEP_TIMING_OPTIONS.filter(opt => !opt.conditionalOn2 || day === "2");
   options.forEach(opt => {
     const el = document.createElement("option");
     el.value = opt.value;
     el.textContent = opt.label;
-    timingSelect.appendChild(el);
+    sleepSelect.appendChild(el);
   });
 
-  timingSelect.disabled = day === null;
-  timingSelect.classList.remove("filled");
+  sleepSelect.disabled = day === null;
+  sleepSelect.classList.remove("filled");
   timingHint.style.display = day === null ? "block" : "none";
 }
-renderTimingOptions(null);
+renderSleepOptions(null);
 
-timingSelect.addEventListener("change", () => {
-  timingSelect.classList.toggle("filled", timingSelect.value !== "");
-  if (timingSelect.value !== "") document.getElementById("timing-required").style.display = "none";
+sleepSelect.addEventListener("change", () => {
+  sleepSelect.classList.toggle("filled", sleepSelect.value !== "");
+  if (sleepSelect.value !== "") document.getElementById("timing-required").style.display = "none";
+});
+
+// ── 食事基準の選択肢(条件に依存しないので一度だけ構築) ──
+const mealSelect = document.getElementById("meal-timing-select");
+
+function buildMealOptions() {
+  mealSelect.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  placeholder.textContent = "選択してください";
+  mealSelect.appendChild(placeholder);
+
+  MEAL_TIMING_OPTIONS.forEach(opt => {
+    const el = document.createElement("option");
+    el.value = opt.value;
+    el.textContent = opt.label;
+    mealSelect.appendChild(el);
+  });
+}
+buildMealOptions();
+
+mealSelect.addEventListener("change", () => {
+  mealSelect.classList.toggle("filled", mealSelect.value !== "");
+  if (mealSelect.value !== "") document.getElementById("timing-required").style.display = "none";
+});
+
+// ── 時刻基準の選択肢(7:00〜14:00・30分おき) ──
+const clockSelect = document.getElementById("clock-select");
+
+function buildClockOptions() {
+  clockSelect.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  placeholder.textContent = "選択してください";
+  clockSelect.appendChild(placeholder);
+
+  for (let h = 7; h <= 14; h++) {
+    for (const m of [0, 30]) {
+      if (h === 14 && m === 30) continue; // 14:00で終了
+      const hh = String(h).padStart(2, "0");
+      const mm = String(m).padStart(2, "0");
+      const val = `${hh}:${mm}`;
+      const el = document.createElement("option");
+      el.value = val;
+      el.textContent = val;
+      clockSelect.appendChild(el);
+    }
+  }
+}
+buildClockOptions();
+
+clockSelect.addEventListener("change", () => {
+  clockSelect.classList.toggle("filled", clockSelect.value !== "");
+  if (clockSelect.value !== "") document.getElementById("timing-required").style.display = "none";
+});
+
+// ── 基準切替(睡眠基準/食事基準/時刻基準) ──
+const sleepWrap = document.getElementById("sleep-timing-wrap");
+const mealWrap  = document.getElementById("meal-timing-wrap");
+const clockWrap = document.getElementById("clock-timing-wrap");
+let selectedBasis = null; // "sleep" | "meal" | "clock"
+
+const BASIS_WRAPS = {
+  sleep: sleepWrap,
+  meal:  mealWrap,
+  clock: clockWrap,
+};
+const BASIS_SELECTS = {
+  sleep: sleepSelect,
+  meal:  mealSelect,
+  clock: clockSelect,
+};
+
+document.querySelectorAll(".basis-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".basis-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedBasis = btn.dataset.basis;
+    document.getElementById("basis-required").style.display = "none";
+    document.getElementById("timing-required").style.display = "none";
+
+    Object.keys(BASIS_WRAPS).forEach(key => {
+      const isActive = key === selectedBasis;
+      BASIS_WRAPS[key].style.display = isActive ? "block" : "none";
+      if (!isActive) {
+        BASIS_SELECTS[key].value = "";
+        BASIS_SELECTS[key].classList.remove("filled");
+      }
+    });
+  });
 });
 
 function resetAll() {
   sliderMap.forEach(({ slider }) => { slider.value = 50; updateRail(slider); });
   document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
   selectedDay = null;
-  renderTimingOptions(null);
+  renderSleepOptions(null);
+  buildMealOptions();
+  buildClockOptions();
+  document.querySelectorAll(".basis-btn").forEach(b => b.classList.remove("active"));
+  selectedBasis = null;
+  sleepWrap.style.display = "none";
+  mealWrap.style.display  = "none";
+  clockWrap.style.display = "none";
   subjectIdEl.value = "";
   subjectIdEl.classList.remove("filled");
 }
@@ -357,7 +505,7 @@ document.querySelectorAll(".day-btn").forEach(btn => {
     selectedDay = btn.dataset.day;
     document.getElementById("day-required").style.display = "none";
     document.getElementById("timing-required").style.display = "none";
-    renderTimingOptions(selectedDay);
+    renderSleepOptions(selectedDay);
   });
 });
 
@@ -378,7 +526,9 @@ document.getElementById("save-btn").addEventListener("click", async () => {
   const statusEl  = document.getElementById("status");
   const btn       = document.getElementById("save-btn");
   const subjectId = subjectIdEl.value.trim();
-  const timingVal = timingSelect.value;
+  const timingVal = selectedBasis && BASIS_SELECTS[selectedBasis]
+                   ? BASIS_SELECTS[selectedBasis].value
+                   : "";
 
   if (!subjectId) {
     document.getElementById("id-required").style.display = "block";
@@ -386,6 +536,10 @@ document.getElementById("save-btn").addEventListener("click", async () => {
   }
   if (selectedDay === null) {
     document.getElementById("day-required").style.display = "block";
+    statusEl.textContent = ""; return;
+  }
+  if (selectedBasis === null) {
+    document.getElementById("basis-required").style.display = "block";
     statusEl.textContent = ""; return;
   }
   if (!timingVal) {
@@ -397,14 +551,15 @@ document.getElementById("save-btn").addEventListener("click", async () => {
   statusEl.className   = "st-wait";
 
   const payload = {
-    timestamp:  getTimestamp(),
-    subject_id: subjectId,
-    condition:  selectedDay,
-    timing:     timingVal,
-    hunger:     document.getElementById("hunger-slider").value,
-    satiety:    document.getElementById("satiety-slider").value,
-    desire:     document.getElementById("desire-slider").value,
-    capacity:   document.getElementById("capacity-slider").value,
+    timestamp:    getTimestamp(),
+    subject_id:   subjectId,
+    condition:    selectedDay,
+    timing_basis: selectedBasis,
+    timing:       timingVal,
+    hunger:       document.getElementById("hunger-slider").value,
+    satiety:      document.getElementById("satiety-slider").value,
+    desire:       document.getElementById("desire-slider").value,
+    capacity:     document.getElementById("capacity-slider").value,
   };
 
   try {
