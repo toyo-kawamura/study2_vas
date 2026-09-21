@@ -425,16 +425,13 @@ function buildClockOptions() {
   clockSelect.appendChild(placeholder);
 
   for (let h = 7; h <= 14; h++) {
-    for (const m of [0, 30]) {
-      if (h === 14 && m === 30) continue; // 14:00で終了
-      const hh = String(h).padStart(2, "0");
-      const mm = String(m).padStart(2, "0");
-      const val = `${hh}:${mm}`;
-      const el = document.createElement("option");
-      el.value = val;
-      el.textContent = val;
-      clockSelect.appendChild(el);
-    }
+    const hh = String(h).padStart(2, "0");
+    const val = `${hh}:00`;
+    const el = document.createElement("option");
+    el.value = val;
+    el.textContent = val;
+    clockSelect.appendChild(el);
+  }
   }
 }
 buildClockOptions();
