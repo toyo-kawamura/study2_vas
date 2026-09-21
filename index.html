@@ -258,7 +258,7 @@
     </div>
 
     <div class="timing-sub" id="clock-timing-wrap" style="display:none;">
-      <p class="card-sub">※ 7:00〜14:00</p>
+      <p class="card-sub">※ 7:00〜14:00・1時間おき</p>
       <select id="clock-select" class="timing-select-el">
         <option value="" disabled selected>選択してください</option>
       </select>
@@ -315,7 +315,7 @@
 </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwgFSHCNHgvJzl_ivupVuUQpTubLQAPRxq0XJTdogGGgo93uj4TB4WE2WZ-dDxGaXqO/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzHGbdL4nmWmccM-sFZTuFoHWLy2f9dYxlVO6yXJ1NwFN0UKZzW3_EOJh6tJCtNiBXoxA/exec";
 
 const sliderMap = [
   { slider: document.getElementById("hunger-slider")   },
@@ -339,19 +339,19 @@ sliderMap.forEach(({ slider }) => {
 const SLEEP_TIMING_OPTIONS = [
   { value: "before_sleep",   label: "就寝直前",       conditionalOn2: false },
   { value: "after_wake",     label: "起床直後",       conditionalOn2: false },
-  { value: "wake_plus_1h",   label: "起床1時間後",    conditionalOn2: true  },
-  { value: "wake_plus_2h",   label: "起床2時間後",    conditionalOn2: true  },
+  { value: "wake_1h",        label: "起床1時間後",    conditionalOn2: true  },
+  { value: "wake_2h",        label: "起床2時間後",    conditionalOn2: true  },
 ];
 
 // 食事基準: 朝食を起点とした相対タイミング(条件に依存しない)
 const MEAL_TIMING_OPTIONS = [
-  { value: "before_meal",    label: "朝食直前" },
-  { value: "meal_plus_30",   label: "朝食後30分" },
-  { value: "meal_plus_60",   label: "朝食後60分" },
-  { value: "meal_plus_90",   label: "朝食後90分" },
-  { value: "meal_plus_120",  label: "朝食後120分" },
-  { value: "meal_plus_150",  label: "朝食後150分" },
-  { value: "meal_plus_180",  label: "朝食後180分" },
+  { value: "meal_0",         label: "朝食直前" },
+  { value: "meal_30",        label: "朝食後30分" },
+  { value: "meal_60",        label: "朝食後60分" },
+  { value: "meal_90",        label: "朝食後90分" },
+  { value: "meal_120",       label: "朝食後120分" },
+  { value: "meal_150",       label: "朝食後150分" },
+  { value: "meal_180",       label: "朝食後180分" },
 ];
 
 const sleepSelect = document.getElementById("sleep-timing-select");
@@ -433,7 +433,7 @@ function buildClockOptions() {
     clockSelect.appendChild(el);
   }
 }
-  buildClockOptions();
+buildClockOptions();
 
 clockSelect.addEventListener("change", () => {
   clockSelect.classList.toggle("filled", clockSelect.value !== "");
